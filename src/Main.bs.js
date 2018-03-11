@@ -36,8 +36,8 @@ var base = new Airtable({
 
 var table = base(tableName);
 
-function update(status) {
-  table.update("recsA2fRDg7u7UPN2", Js_dict.fromArray(/* array */[/* tuple */[
+function update(recordId, status) {
+  table.update(recordId, Js_dict.fromArray(/* array */[/* tuple */[
               "Status",
               status
             ]]));
@@ -82,25 +82,36 @@ Curry._3(Express.App[/* post */7], app, "/postreceive", Express.Middleware[/* fr
             return (function (param) {
                 var decoded = Curry._1(partial_arg$2, param);
                 console.log(decoded);
-                var match = decoded.action;
-                switch (match) {
-                  case 0 : 
-                  case 1 : 
-                  case 2 : 
-                  case 3 : 
-                  case 5 : 
-                  case 6 : 
-                  case 7 : 
-                      break;
-                  case 8 : 
-                      update("Closed");
-                      break;
-                  case 4 : 
-                  case 9 : 
-                      update("Open");
-                      break;
-                  
-                }
+                var issueNumber = decoded.issue.number;
+                var selectResults = table.select({
+                      filterByFormula: "(IssueNumber=" + (String(issueNumber) + ")")
+                    });
+                var resultsHandler = function (err, records) {
+                  console.log(err);
+                  if (records.length !== 1) {
+                    return /* () */0;
+                  } else {
+                    var record = records[0];
+                    var match = decoded.action;
+                    switch (match) {
+                      case 0 : 
+                      case 1 : 
+                      case 2 : 
+                      case 3 : 
+                      case 5 : 
+                      case 6 : 
+                      case 7 : 
+                          return /* () */0;
+                      case 8 : 
+                          return update(record.id, "Closed");
+                      case 4 : 
+                      case 9 : 
+                          return update(record.id, "Open");
+                      
+                    }
+                  }
+                };
+                selectResults.firstPage(resultsHandler);
                 var partial_arg$3 = makeSuccessJson(/* () */0);
                 var partial_arg$4 = Express.Response[/* sendJson */3];
                 return (function (param) {

@@ -23,9 +23,9 @@ let base = Airtable.(makeConfig(~apiKey, ()) |> airtable |> base(dbId));
 
 let table = base(. tableName);
 
-let update = status =>
+let update = (recordId, status) =>
   Airtable.update(
-    "recsA2fRDg7u7UPN2",
+    recordId,
     Js.Dict.fromArray([|("Status", status)|]),
     table,
   );
@@ -63,12 +63,34 @@ Middleware.from(_next =>
   >> (
     decoded => {
       Js.log(decoded);
-      switch (decoded##action) {
-      | Reopened
-      | Opened => update("Open")
-      | Closed => update("Closed")
-      | _ => ()
-      };
+      let issueNumber = decoded##issue##number;
+      let selectResults =
+        Airtable.(
+          select(
+            makeSelectFilter(
+              ~filterByFormula={j|(IssueNumber=$issueNumber)|j},
+              (),
+            ),
+            table,
+          )
+        );
+      let resultsHandler =
+        (. err, records) => {
+          /* TODO Handle errors */
+          Js.log(err);
+          switch (records) {
+          /* Not considering cases with more than one result */
+          | [|record|] =>
+            switch (decoded##action) {
+            | Reopened
+            | Opened => update(record##id, "Open")
+            | Closed => update(record##id, "Closed")
+            | _ => ()
+            }
+          | _ => ()
+          };
+        };
+      Airtable.firstPage(resultsHandler, selectResults);
       Response.sendJson(makeSuccessJson());
     }
   )

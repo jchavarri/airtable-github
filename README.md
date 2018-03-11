@@ -21,5 +21,5 @@ npm run start
 # Run 
 
 ```
-AIRTABLE_API_KEY="your_api_key" AIRTABLE_DB_ID="your_db_id" AIRTABLE_TABLE_NAME="your_table_name" node src/Demo.bs.js
+AIRTABLE_API_KEY="your_api_key" AIRTABLE_DB_ID="your_db_id" AIRTABLE_TABLE_NAME="your_table_name" node src/Main.bs.js
 ```
